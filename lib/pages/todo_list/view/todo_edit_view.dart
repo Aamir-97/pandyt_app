@@ -21,6 +21,16 @@ class _TodoEditViewState extends State<TodoEditView> {
     super.initState();
   }
 
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null) return 'N/A';
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +68,7 @@ class _TodoEditViewState extends State<TodoEditView> {
                 SizedBox(height: 20),
                 Text('Status: ${todo.isCompleted ? "Completed" : "Pending"}'),
                 SizedBox(height: 20),
-                Text('Created At: ${todo.createdAt}'),
+                Text('Created At: ${_formatDateTime(todo.createdAt)}'),
                 SizedBox(height: 20),
                 Row(
                   mainAxisSize: MainAxisSize.min,
