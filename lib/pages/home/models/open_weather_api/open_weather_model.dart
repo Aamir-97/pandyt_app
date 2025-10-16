@@ -5,7 +5,7 @@ import 'sys.dart';
 import 'weather.dart';
 import 'wind.dart';
 
-class OpenWeatherApi {
+class OpenWeatherModel {
   Coord? coord;
   List<Weather>? weather;
   String? base;
@@ -20,7 +20,7 @@ class OpenWeatherApi {
   String? name;
   int? cod;
 
-  OpenWeatherApi({
+  OpenWeatherModel({
     this.coord,
     this.weather,
     this.base,
@@ -41,8 +41,8 @@ class OpenWeatherApi {
     return 'OpenWeatherApi(coord: $coord, weather: $weather, base: $base, main: $main, visibility: $visibility, wind: $wind, clouds: $clouds, dt: $dt, sys: $sys, timezone: $timezone, id: $id, name: $name, cod: $cod)';
   }
 
-  factory OpenWeatherApi.fromJson(Map<String, dynamic> json) {
-    return OpenWeatherApi(
+  factory OpenWeatherModel.fromJson(Map<String, dynamic> json) {
+    return OpenWeatherModel(
       coord: json['coord'] == null
           ? null
           : Coord.fromJson(json['coord'] as Map<String, dynamic>),
