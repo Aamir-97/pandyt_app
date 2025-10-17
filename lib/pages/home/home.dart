@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pandyt_app/pages/app_layout/custom_appbar.dart';
 import 'package:pandyt_app/pages/home/weather_home.dart';
-import 'package:pandyt_app/pages/products/view/product_list_view.dart';
+import 'package:pandyt_app/pages/products/product_list_view.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});

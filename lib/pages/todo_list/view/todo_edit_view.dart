@@ -3,6 +3,7 @@ import 'package:pandyt_app/pages/app_layout/custom_appbar.dart';
 import 'package:pandyt_app/pages/todo_list/models/todo_list_model.dart';
 import 'package:pandyt_app/pages/todo_list/provider/todo_list_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class TodoEditView extends StatefulWidget {
   final int todoId;
@@ -58,7 +59,9 @@ class _TodoEditViewState extends State<TodoEditView> {
                 SizedBox(height: 20),
                 Text('Status: ${todo.isCompleted ? "Completed" : "Pending"}'),
                 SizedBox(height: 20),
-                Text('Created At: ${todo.createdAt}'),
+                Text(
+                  'Created At: ${DateFormat.yMMMd().format(DateTime.tryParse(todo.createdAt!) ?? DateTime.now())}',
+                ),
                 SizedBox(height: 20),
                 Row(
                   mainAxisSize: MainAxisSize.min,

@@ -15,18 +15,22 @@ class _CustomAppbarState extends State<CustomAppbar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text('Weather App'),
+      title: const Text(
+        'Pandyt - Aamir App',
+        style: TextStyle(color: Colors.white),
+      ),
       centerTitle: true,
       backgroundColor: Colors.blueAccent,
       actions: [
         IconButton(
+          color: Colors.white,
           icon: const Icon(Icons.logout_outlined),
           onPressed: () async {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Local storage cleared!')),
+            );
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.clear();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Logout button pressed')),
-            );
           },
         ),
       ],

@@ -22,7 +22,9 @@ class ProductListScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final product = state.products[index];
                       return ListTile(
-                        title: Text(product.title),
+                        tileColor: Colors.amber[50],
+                        enableFeedback: true,
+                        title: Text('$index - ${product.title}'),
                         trailing: Text('\$${product.price}'),
                       );
                     },

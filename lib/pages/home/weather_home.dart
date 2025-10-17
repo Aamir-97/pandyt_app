@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io' show Platform;
-
 import 'package:pandyt_app/pages/home/providers/weather_provider.dart';
 import 'package:pandyt_app/pages/home/services/weather_service.dart';
-import 'package:pandyt_app/pages/home/widget/weather_widget.dart';
 import 'package:pandyt_app/pages/todo_list/view/todo_add_popup.dart';
 import 'package:pandyt_app/pages/todo_list/view/todo_list_view.dart';
 import 'package:provider/provider.dart';
@@ -34,7 +31,6 @@ class _WeatherHomeState extends State<WeatherHome> {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   final List<_PositionItem> _positionItems = <_PositionItem>[];
   StreamSubscription<Position>? _positionStreamSubscription;
-  StreamSubscription<ServiceStatus>? _serviceStatusStreamSubscription;
   bool positionStreamStarted = false;
 
   @override
@@ -49,58 +45,16 @@ class _WeatherHomeState extends State<WeatherHome> {
 
       final lat = _positionItems.isNotEmpty
           ? _positionItems.last.displayValue.split(',')[0].split(':')[1].trim()
-          : '26.8467';
+          : '7.431394';
       final lon = _positionItems.isNotEmpty
           ? _positionItems.last.displayValue.split(',')[1].split(':')[1].trim()
           : '81.816455';
 
       final weather = await weatherService.fetchWeather(lat: lat, lon: lon);
       if (weather != null) {
-        print('Aamir');
-        print(weather.toString());
         weatherProv.setWeatherModel(weather);
       }
     });
-  }
-
-  PopupMenuButton _createActions() {
-    return PopupMenuButton(
-      elevation: 40,
-      onSelected: (value) async {
-        switch (value) {
-          case 1:
-            _getLocationAccuracy();
-            break;
-          case 2:
-            _requestTemporaryFullAccuracy();
-            break;
-          case 3:
-            _openAppSettings();
-            break;
-          case 4:
-            _openLocationSettings();
-            break;
-          case 5:
-            setState(_positionItems.clear);
-            break;
-          default:
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        if (Platform.isIOS)
-          const PopupMenuItem(value: 1, child: Text("Get Location Accuracy")),
-        if (Platform.isIOS)
-          const PopupMenuItem(
-            value: 2,
-            child: Text("Request Temporary Full Accuracy"),
-          ),
-        const PopupMenuItem(value: 3, child: Text("Open App Settings")),
-        if (Platform.isAndroid || Platform.isWindows)
-          const PopupMenuItem(value: 4, child: Text("Open Location Settings")),
-        const PopupMenuItem(value: 5, child: Text("Clear")),
-      ],
-    );
   }
 
   @override
@@ -115,7 +69,39 @@ class _WeatherHomeState extends State<WeatherHome> {
                 flex: 1,
                 child: value.weatherModel == null
                     ? const Center(child: CircularProgressIndicator())
-                    : WeatherWidget(weather: value.weatherModel!),
+                    : Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '${value.weatherModel!.name}',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${value.weatherModel!.main!.temp!.toStringAsFixed(1)}°C',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              value.weatherModel!.weather!.isNotEmpty
+                                  ? value.weatherModel!.weather![0].description!
+                                  : 'No description',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
               ),
               Expanded(
                 flex: 2,
@@ -143,14 +129,13 @@ class _WeatherHomeState extends State<WeatherHome> {
         onPressed: () {
           showTodoAddPopup(context);
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, size: 26, weight: 800),
       ),
     );
   }
 
   Future<void> _getCurrentPosition() async {
     final hasPermission = await _handlePermission();
-
     if (!hasPermission) {
       return;
     }
@@ -213,161 +198,13 @@ class _WeatherHomeState extends State<WeatherHome> {
     setState(() {});
   }
 
-  bool _isListening() =>
-      !(_positionStreamSubscription == null ||
-          _positionStreamSubscription!.isPaused);
-
-  Color _determineButtonColor() {
-    return _isListening() ? Colors.green : Colors.red;
-  }
-
-  void _toggleServiceStatusStream() {
-    if (_serviceStatusStreamSubscription == null) {
-      final serviceStatusStream = _geolocatorPlatform.getServiceStatusStream();
-      _serviceStatusStreamSubscription = serviceStatusStream
-          .handleError((error) {
-            _serviceStatusStreamSubscription?.cancel();
-            _serviceStatusStreamSubscription = null;
-          })
-          .listen((serviceStatus) {
-            String serviceStatusValue;
-            if (serviceStatus == ServiceStatus.enabled) {
-              if (positionStreamStarted) {
-                _toggleListening();
-              }
-              serviceStatusValue = 'enabled';
-            } else {
-              if (_positionStreamSubscription != null) {
-                setState(() {
-                  _positionStreamSubscription?.cancel();
-                  _positionStreamSubscription = null;
-                  _updatePositionList(
-                    _PositionItemType.log,
-                    'Position Stream has been canceled',
-                  );
-                });
-              }
-              serviceStatusValue = 'disabled';
-            }
-            _updatePositionList(
-              _PositionItemType.log,
-              'Location service has been $serviceStatusValue',
-            );
-          });
-    }
-  }
-
-  void _toggleListening() {
-    if (_positionStreamSubscription == null) {
-      final positionStream = _geolocatorPlatform.getPositionStream();
-      _positionStreamSubscription = positionStream
-          .handleError((error) {
-            _positionStreamSubscription?.cancel();
-            _positionStreamSubscription = null;
-          })
-          .listen(
-            (position) => _updatePositionList(
-              _PositionItemType.position,
-              position.toString(),
-            ),
-          );
-      _positionStreamSubscription?.pause();
-    }
-
-    setState(() {
-      if (_positionStreamSubscription == null) {
-        return;
-      }
-
-      String statusDisplayValue;
-      if (_positionStreamSubscription!.isPaused) {
-        _positionStreamSubscription!.resume();
-        statusDisplayValue = 'resumed';
-      } else {
-        _positionStreamSubscription!.pause();
-        statusDisplayValue = 'paused';
-      }
-
-      _updatePositionList(
-        _PositionItemType.log,
-        'Listening for position updates $statusDisplayValue',
-      );
-    });
-  }
-
   @override
   void dispose() {
     if (_positionStreamSubscription != null) {
       _positionStreamSubscription!.cancel();
       _positionStreamSubscription = null;
     }
-
     super.dispose();
-  }
-
-  void _getLastKnownPosition() async {
-    final position = await _geolocatorPlatform.getLastKnownPosition();
-    if (position != null) {
-      _updatePositionList(_PositionItemType.position, position.toString());
-    } else {
-      _updatePositionList(
-        _PositionItemType.log,
-        'No last known position available',
-      );
-    }
-  }
-
-  void _getLocationAccuracy() async {
-    final status = await _geolocatorPlatform.getLocationAccuracy();
-    _handleLocationAccuracyStatus(status);
-  }
-
-  void _requestTemporaryFullAccuracy() async {
-    final status = await _geolocatorPlatform.requestTemporaryFullAccuracy(
-      purposeKey: "TemporaryPreciseAccuracy",
-    );
-    _handleLocationAccuracyStatus(status);
-  }
-
-  void _handleLocationAccuracyStatus(LocationAccuracyStatus status) {
-    String locationAccuracyStatusValue;
-    if (status == LocationAccuracyStatus.precise) {
-      locationAccuracyStatusValue = 'Precise';
-    } else if (status == LocationAccuracyStatus.reduced) {
-      locationAccuracyStatusValue = 'Reduced';
-    } else {
-      locationAccuracyStatusValue = 'Unknown';
-    }
-    _updatePositionList(
-      _PositionItemType.log,
-      '$locationAccuracyStatusValue location accuracy granted.',
-    );
-  }
-
-  void _openAppSettings() async {
-    final opened = await _geolocatorPlatform.openAppSettings();
-    String displayValue;
-
-    if (opened) {
-      displayValue = 'Opened Application Settings.';
-    } else {
-      displayValue = 'Error opening Application Settings.';
-    }
-
-    _updatePositionList(_PositionItemType.log, displayValue);
-  }
-
-  void _openLocationSettings() async {
-    final opened = await _geolocatorPlatform.openLocationSettings();
-    String displayValue;
-
-    if (opened) {
-      displayValue = 'Opened Location Settings';
-    } else {
-      displayValue = 'Error opening Location Settings';
-    }
-
-    _updatePositionList(_PositionItemType.log, displayValue);
   }
 }
 
