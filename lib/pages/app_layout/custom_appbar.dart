@@ -34,12 +34,6 @@ class _CustomAppbarState extends State<CustomAppbar> {
           },
         ),
       ],
-      // bottom: TabBar(
-      //   tabs: [
-      //     Tab(icon: Icon(Icons.cloud), text: 'Weather'),
-      //     Tab(icon: Icon(Icons.list), text: 'To-Do List'),
-      //   ],
-      // ),
     );
   }
 }

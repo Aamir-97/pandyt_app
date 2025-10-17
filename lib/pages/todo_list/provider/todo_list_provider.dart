@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:pandyt_app/pages/todo_list/models/todo_list_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,47 +6,66 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TodoListProvider extends ChangeNotifier {
   final List<TodoListModel> _todoItems = [];
 
-  List<TodoListModel> get todoItems => _todoItems;
+  List<TodoListModel> get todoItems => List.unmodifiable(_todoItems);
 
+  /// Loads todo items from SharedPreferences
   Future<void> loadTodoItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.clear();
-    final keys = prefs.getKeys().where((k) => k.startsWith('todo_'));
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('todo_items');
+
     _todoItems.clear();
 
-    for (var key in keys) {
-      final jsonString = prefs.getString(key);
-      if (jsonString != null) {
-        final Map<String, dynamic> jsonData = jsonDecode(jsonString);
-        _todoItems.add(TodoListModel.fromJson(jsonData));
-      }
+    if (jsonString != null) {
+      final List<dynamic> decodedList = jsonDecode(jsonString);
+      _todoItems.addAll(
+        decodedList.map((e) => TodoListModel.fromJson(e)).toList(),
+      );
     }
+
     notifyListeners();
   }
 
-  void addTodoItem(TodoListModel item) async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // // Convert to JSON string
-    // String todoString = jsonEncode(item.toJson());
+  /// Saves all todo items to SharedPreferences
+  Future<void> _saveTodoItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<Map<String, dynamic>> jsonList = _todoItems
+        .map((item) => item.toJson())
+        .toList();
+    await prefs.setString('todo_items', jsonEncode(jsonList));
+  }
 
-    // // Save under a unique key
-    // await prefs.setString('todo_${item.id}', todoString);
+  /// Updates an existing todo item by its ID and persists the change
+  Future<void> updateTodoItem(TodoListModel updatedItem) async {
+    final index = _todoItems.indexWhere((item) => item.id == updatedItem.id);
+    if (index != -1) {
+      _todoItems[index] = updatedItem;
+      await _saveTodoItems();
+      notifyListeners();
+    }
+  }
+
+  /// Adds a new todo item and persists changes
+  Future<void> addTodoItem(TodoListModel item) async {
     _todoItems.add(item);
+    await _saveTodoItems();
     notifyListeners();
   }
 
-  void removeTodoItem(int index) {
+  /// Removes a todo item and persists changes
+  Future<void> removeTodoItem(int index) async {
+    if (index < 0 || index >= _todoItems.length) return;
     _todoItems.removeAt(index);
+    await _saveTodoItems();
     notifyListeners();
   }
 
   TodoListModel? getTodoById(int? id) {
-    final items = _todoItems.where((item) => item.id == id);
-    return items.isNotEmpty ? items.first : null;
+    return _todoItems.firstWhere(
+      (item) => item.id == id,
+      orElse: () =>
+          TodoListModel(id: -1, title: '', isCompleted: false, description: ''),
+    );
   }
 
-  int getTodoLastId() {
-    if (_todoItems.isEmpty) return 0;
-    return _todoItems.last.id;
-  }
+  int getTodoLastId() => _todoItems.isEmpty ? 0 : _todoItems.last.id;
 }

@@ -71,9 +71,10 @@ class _TodoEditViewState extends State<TodoEditView> {
                     SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () {
-                        value.todoItems[widget.todoId] = value
-                            .todoItems[widget.todoId]
-                            .copyWith(isCompleted: true);
+                        value.updateTodoItem(todo!.copyWith(isCompleted: true));
+                        // value.todoItems[widget.todoId] = value
+                        //     .todoItems[widget.todoId]
+                        //     .copyWith(isCompleted: true);
                       },
                       child: Text('Mark as Done'),
                     ),
@@ -81,10 +82,16 @@ class _TodoEditViewState extends State<TodoEditView> {
                     ElevatedButton(
                       onPressed: () {
                         // Save action
-                        todo = todo!.copyWith(
-                          title: _titleController.text,
-                          description: _descriptionController.text,
+                        value.updateTodoItem(
+                          todo!.copyWith(
+                            title: _titleController.text,
+                            description: _descriptionController.text,
+                          ),
                         );
+                        // todo = todo!.copyWith(
+                        //   title: _titleController.text,
+                        //   description: _descriptionController.text,
+                        // );
                         Navigator.of(context).pop();
                       },
                       child: Text('Save'),

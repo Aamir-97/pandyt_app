@@ -23,6 +23,9 @@ class _TodoListViewState extends State<TodoListView> {
   Widget build(BuildContext context) {
     return Consumer<TodoListProvider>(
       builder: (context, value, child) {
+        if (value.todoItems.isEmpty) {
+          return const Center(child: Text('No todo items. Add some!'));
+        }
         return ListView.separated(
           padding: const EdgeInsets.all(8),
           itemCount: value.todoItems.length,
@@ -37,14 +40,20 @@ class _TodoListViewState extends State<TodoListView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
+                    color: Colors.blue,
                     onPressed: () {
-                      value.todoItems[index] = value.todoItems[index].copyWith(
-                        isCompleted: true,
+                      value.updateTodoItem(
+                        value.todoItems[index].copyWith(
+                          isCompleted: !value.todoItems[index].isCompleted,
+                        ),
                       );
                     },
-                    icon: Icon(Icons.check),
+                    icon: value.todoItems[index].isCompleted
+                        ? Icon(Icons.check_box_outlined)
+                        : Icon(Icons.check_box_outline_blank),
                   ),
                   IconButton(
+                    color: Colors.blue,
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -59,6 +68,7 @@ class _TodoListViewState extends State<TodoListView> {
                     icon: Icon(Icons.edit),
                   ),
                   IconButton(
+                    color: Colors.red,
                     icon: Icon(Icons.delete),
                     onPressed: () {
                       value.removeTodoItem(index);
