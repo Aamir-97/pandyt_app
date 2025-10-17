@@ -15,6 +15,9 @@ constraints: min-sdk version 35
 1. Get the flutter dependencies by run the following cmd:
     - flutter pub get
 
-2. Run/Debug the application by running the app into any device
+2. Use the .env file in root of the application
+    - contains OpenWeatherApi key
+
+3. Run/Debug the application by running the app into any device
     - flutter run -d <device>
 
