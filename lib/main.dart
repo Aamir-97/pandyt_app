@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pandyt_app/pages/home/providers/weather_provider.dart';
 import 'package:pandyt_app/pages/todo_list/provider/todo_list_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const ProviderScope(child: MyApp()));
 }
 
